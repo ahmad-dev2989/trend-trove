@@ -6173,6 +6173,18 @@
                         `;
                     }).join('');
                 
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const trackingLink = `${baseUrl}?track=${trackingCode}`;
+                    
+                    const finalCustomerHtml = generatedOrderHtml + `
+                    <div style="text-align: center; margin-top: 30px; margin-bottom: 20px; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+                        <h3 style="margin-top:0; color:#111; font-family: sans-serif;">Track Your Order Live</h3>
+                        <p style="color:#666; margin-bottom: 20px; font-family: sans-serif;">Keep an eye on your package from our store to your door.</p>
+                        <a href="${trackingLink}" style="background-color: #c6ff34; color: #000000; padding: 14px 28px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 16px; display: inline-block; font-family: sans-serif;">Track Order Now</a>
+                        <p style="color: #888; font-size: 12px; margin-top: 15px; font-family: sans-serif;">Tracking ID: <strong>${trackingCode}</strong></p>
+                    </div>
+                    `;
+
                     const customerEmailParams = {
                         order_id: trackingCode,
                         name: this.checkoutForm.fullName,
@@ -6190,7 +6202,8 @@
                         product_qty: itemQty,
                         product_price: firstItem.salePrice || firstItem.price,
                         product_image: displayImage,
-                        order_html: generatedOrderHtml  
+                        tracking_link: trackingLink,
+                        order_html: finalCustomerHtml  
                     };
                 
                     // 7. PARAMS FOR ADMIN EMAIL
