@@ -6139,54 +6139,12 @@
                     const adminSize = isCustom ? 'N/A' : itemSize;
                     const adminColor = isCustom ? 'N/A' : itemColor;
                     const printingSize = (isCustom && firstItem.customDetails && firstItem.customDetails.printSize) ? firstItem.customDetails.printSize : 'N/A';
-                
-                    // 6. PARAMS FOR BUYER EMAIL
-                    const generatedOrderHtml = itemsToCheckout.map(item => {
-                        const regularPrice = item.price || 0;
-                        const salePrice = item.salePrice || item.price || 0;
-                        const imgUrl = (item.isCustomizable && item.customDetails && item.customDetails.image) 
-                            ? item.customDetails.image 
-                            : (item.frontImages && item.frontImages.length > 0 ? item.frontImages[0] : '');
-                        const colorName = item.color ? item.color.name : 'N/A';
-                        
-                        let priceHtml = salePrice < regularPrice 
-                            ? `<span style="text-decoration: line-through; color: #999; font-size: 12px;">PKR ${regularPrice}</span><br><strong style="color: #d4af37;">PKR ${salePrice}</strong>`
-                            : `<strong style="color: #d4af37;">PKR ${regularPrice}</strong>`;
-                
-                        return `
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
-                            <tr>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee; width: 70px;">
-                                    <img src="${imgUrl}" alt="${item.name}" style="width: 60px; height: 60px; border-radius: 5px; object-fit: cover; background-color: #f4f4f4;"/>
-                                </td>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee; vertical-align: top;">
-                                    <strong style="font-size: 15px; color: #1a1a1a;">${item.name}</strong><br>
-                                    <span style="font-size: 13px; color: #666;">Size: <strong>${item.size}</strong> | Color: <strong>${colorName}</strong></span><br>
-                                    <span style="font-size: 12px; color: #888;">Method: ${paymentMethodName} | Date: ${orderDate}</span>
-                                </td>
-                                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; vertical-align: top;">
-                                    <span style="font-size: 13px; color: #555;">Qty: ${item.quantity || 1}</span><br>
-                                    ${priceHtml}
-                                </td>
-                            </tr>
-                        </table>
-                        `;
-                    }).join('');
-                
-                    
-                    
-                    const finalCustomerHtml = generatedOrderHtml + `
-                    <div style="text-align: center; margin-top: 30px; margin-bottom: 20px; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
-                        <h3 style="margin-top:0; color:#111; font-family: sans-serif;">Track Your Order Live</h3>
-                        <p style="color:#666; margin-bottom: 20px; font-family: sans-serif;">Keep an eye on your package from our store to your door.</p>
-                        <a href="${trackingLink}" style="background-color: #c6ff34; color: #000000; padding: 14px 28px; text-decoration: none; font-weight: bold; border-radius: 6px; font-size: 16px; display: inline-block; font-family: sans-serif;">Track Order Now</a>
-                        <p style="color: #888; font-size: 12px; margin-top: 15px; font-family: sans-serif;">Tracking ID: <strong>${trackingCode}</strong></p>
-                    </div>
-                    `;
 
+                    // Generate Tracking Link
                     const baseUrl = window.location.origin + window.location.pathname;
                     const trackingLink = `${baseUrl}?track=${trackingCode}`;
 
+                    // 6. PARAMS FOR BUYER EMAIL
                     const customerEmailParams = {
                         order_id: trackingCode,
                         name: this.checkoutForm.fullName,
