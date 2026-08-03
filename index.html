@@ -3668,10 +3668,16 @@
                             <!-- Courier Live Tracking Button -->
                             <div x-show="trackedOrder.status === 'dispatched' && trackedOrder.courierTrackingId" class="p-6 rounded-lg text-center bg-gray-50 border border-green-200">
                                 <p class="text-gray-900 mb-2 font-bold">Your order is on the way via <span x-text="trackedOrder.courierName"></span>!</p>
-                                <p class="text-gray-600 text-sm mb-4">Tracking Number: <strong class="text-green-700 font-bold" x-text="trackedOrder.courierTrackingId"></strong></p>
-                                <button @click="openCourierTracking(trackedOrder)" class="btn-premium px-6 py-3 rounded-md font-bold w-full sm:w-auto" style="background:#c6ff34; color:#000000;">
+                                <div class="text-gray-600 text-sm mb-4 flex items-center justify-center gap-2">
+                                    Tracking Number: <strong class="text-green-700 font-bold text-lg" x-text="trackedOrder.courierTrackingId"></strong>
+                                    <button @click="copyTrackingId(trackedOrder.courierTrackingId)" class="p-1.5 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition-colors shadow-sm" title="Copy to clipboard">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <button @click="openCourierTracking(trackedOrder)" class="btn-premium px-6 py-3 rounded-md font-bold w-full sm:w-auto mb-2" style="background:#c6ff34; color:#000000;">
                                     <i class="fas fa-external-link-alt mr-2"></i> Track Live on Courier Website
                                 </button>
+                                <p class="text-xs text-gray-500 italic">If the tracking number doesn't auto-fill, copy it and paste it on the courier's site.</p>
                             </div>
                         </div>
                     </template>
@@ -6615,6 +6621,15 @@
                     
                     const url = courierUrls[order.courierName] || `https://www.google.com/search?q=${order.courierName}+tracking+${trackId}`;
                     window.open(url, '_blank');
+                },
+
+                copyTrackingId(trackingId) {
+                    navigator.clipboard.writeText(trackingId.trim()).then(() => {
+                        this.showToast('Tracking ID copied to clipboard!', 'success');
+                    }).catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        this.showToast('Failed to copy Tracking ID.', 'error');
+                    });
                 },
                 // ---------------------------------------------
 
