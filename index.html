@@ -4340,44 +4340,11 @@
                    </div>
                    
                    <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-md font-medium shadow-md hover:bg-red-700 transition-colors">Remove Category</button>
-               </form>
-           </div>
-       </div> 
-                        <div class="modal-content max-w-lg">  
-                            <button class="close-modal" @click="removeCategoryModalOpen = false">  
-                                <i class="fas fa-times"></i>  
-                            </button>  
-                            <h2 class="text-3xl font-bold mb-6 text-center">Remove Category</h2>  
-                            
-                            <form @submit.prevent="removeCategory()">  
-                                <div class="mb-6">  
-                                    <label class="block text-gray-700 mb-2" for="categoryToRemove">Select Category to Remove</label>  
-                                    <select   
-                                        id="categoryToRemove"   
-                                        x-model="categoryToRemove"  
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold"  
-                                        required  
-                                    >  
-                                        <option value="">Select Category</option>  
-                                        <template x-for="category in categories" :key="category.id">  
-                                            <option :value="category.id" x-text="category.name"></option>  
-                                        </template>  
-                                    </select>  
-                                </div>  
-                                
-                                <div class="mb-4" x-show="categoryToRemove">  
-                                    <p class="text-red-600 font-medium">Warning: This action will permanently remove the category and cannot be undone.</p>  
-                                    <p class="text-gray-600 mt-2" x-show="getProductCountByCategory(categoryToRemove) > 0">  
-                                        There are <span x-text="getProductCountByCategory(categoryToRemove)" class="font-bold"></span> products in this category.   
-                                        These products will also be removed.  
-                                    </p>  
-                                </div>  
-                                
-                                <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-md font-medium shadow-md hover:bg-red-700 transition-colors">Remove Category</button>  
-                            </form>  
-                        </div>  
-                    </div>  
-                    <section class="py-8 bg-white border-t border-gray-100">
+                </form>
+            </div>
+        </div> 
+
+        <section class="py-8 bg-white border-t border-gray-100">
                         <div class="container mx-auto px-6 text-center">
                             <h2 class="text-2xl font-bold mb-4">Shop the Best Hoodies & Track Suits in Pakistan</h2>
                             <p class="text-gray-500 text-sm max-w-4xl mx-auto">
