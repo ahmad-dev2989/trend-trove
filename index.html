@@ -2051,7 +2051,7 @@
                 <a href="#" @click.prevent="showAboutPage ? showAboutPage() : null" class="nav-link text-sm font-semibold tracking-widest uppercase hover-lift" style="color:#ffffff; letter-spacing:0.12em;">About</a>
                 <a href="#" @click.prevent="showAllProductsPage()" class="nav-link text-sm font-semibold tracking-widest uppercase hover-lift" style="color:#ffffff; letter-spacing:0.12em;">All Categories</a>
                 <a href="#" @click.prevent="showCustomCategory()" class="nav-link text-sm font-semibold tracking-widest uppercase hover-lift" style="color:#ffffff; letter-spacing:0.12em;">Custom</a>
-                <a href="https://wa.me/message/TY5U3IM2LB6HJ1" class="nav-link text-sm font-semibold tracking-widest uppercase hover-lift" style="color:#ffffff; letter-spacing:0.12em;">Contact</a>
+                <a href="#" @click.prevent="previousPage = currentPage; startPageTransition('track-order')" class="nav-link text-sm font-semibold tracking-widest uppercase hover-lift" style="color:#c6ff34; letter-spacing:0.12em;">Track Order</a>
             </div>
     
             <!-- RIGHT ICONS -->
@@ -3059,7 +3059,51 @@
                             </tbody>
                         </table>
                     </div>
-                </div>            
+                </div>
+
+                <!-- Order Management Section (NEW) -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+                    <div class="p-6 border-b flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold">Order Management</h2>
+                            <p class="text-gray-600 mt-2">Update status and add courier tracking IDs</p>
+                        </div>
+                        <button @click="loadAdminOrders()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded font-bold hover:bg-gray-300"><i class="fas fa-sync-alt mr-2"></i>Refresh Orders</button>
+                    </div>
+                    <div class="overflow-x-auto p-4">
+                        <table class="admin-table text-sm">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Courier Tracking</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="order in adminOrders" :key="order.id">
+                                    <tr>
+                                        <td class="font-bold" x-text="order.orderId"></td>
+                                        <td><span x-text="order.shipping.fullName"></span><br><span class="text-gray-500 text-xs" x-text="order.shipping.phone"></span></td>
+                                        <td x-text="'PKR ' + order.total"></td>
+                                        <td>
+                                            <span class="px-2 py-1 rounded text-xs font-bold uppercase" :class="{'bg-yellow-100 text-yellow-800': order.status === 'processing', 'bg-blue-100 text-blue-800': order.status === 'packing', 'bg-purple-100 text-purple-800': order.status === 'dispatched', 'bg-green-100 text-green-800': order.status === 'delivered'}" x-text="order.status"></span>
+                                        </td>
+                                        <td>
+                                            <span x-show="order.courierTrackingId" class="text-xs font-bold text-gray-700" x-text="order.courierName + ': ' + order.courierTrackingId"></span>
+                                            <span x-show="!order.courierTrackingId" class="text-xs text-gray-400">Not assigned</span>
+                                        </td>
+                                        <td>
+                                            <button @click="openUpdateOrderModal(order)" class="text-blue-500 hover:text-blue-700 font-bold"><i class="fas fa-edit mr-1"></i>Update</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 
                 <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
                     <div class="p-6 border-b">
@@ -3555,6 +3599,82 @@
                             <button @click="closeOrderConfirmation()" class="border border-primary text-primary px-6 py-3 rounded-md font-medium hover:bg-highlight transition-colors hover-lift">Continue Shopping</button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Tracking Page -->
+    <div x-show="currentPage === 'track-order'" class="page-container">
+        <div class="min-h-screen bg-cream py-12">
+            <div class="container mx-auto px-4 max-w-3xl">
+                <button @click="showHomePage()" class="mb-6 flex items-center text-primary hover:text-gold transition-colors hover-lift">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                    Back to Home
+                </button>
+                
+                <div class="p-8 rounded-xl shadow-2xl" style="background:#111111; border: 1px solid rgba(198,255,52,0.2);">
+                    <h2 class="text-3xl font-bold mb-6 text-center" style="color:#ffffff;">Track Your Order</h2>
+                    
+                    <!-- Search Bar -->
+                    <form @submit.prevent="fetchTrackingData()" class="flex gap-3 mb-10">
+                        <input type="text" x-model="trackOrderIdInput" placeholder="Enter Order ID (e.g., TRK-123456)" class="flex-1 p-4 rounded-lg focus:outline-none" style="background:#1a1a1a; border:1px solid #333333; color:#ffffff;" required>
+                        <button type="submit" class="btn-premium px-8 rounded-lg font-bold" style="background:#c6ff34; color:#000000;">Track</button>
+                    </form>
+
+                    <!-- Loading/Error States -->
+                    <div x-show="isTrackingLoading" class="text-center py-8 text-gold"><i class="fas fa-spinner fa-spin text-3xl"></i></div>
+                    <div x-show="trackingError" class="text-center py-4 text-red-500 font-bold bg-red-100 rounded-lg mb-6" x-text="trackingError"></div>
+
+                    <!-- Tracking Results -->
+                    <template x-if="trackedOrder">
+                        <div>
+                            <div class="flex justify-between items-center mb-8 p-4 rounded-lg" style="background: rgba(255,255,255,0.05);">
+                                <div>
+                                    <p class="text-gray-400 text-sm">Order ID</p>
+                                    <p class="font-bold text-white text-lg" x-text="trackedOrder.orderId"></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-gray-400 text-sm">Date Placed</p>
+                                    <p class="font-bold text-white" x-text="new Date(trackedOrder.date).toLocaleDateString()"></p>
+                                </div>
+                            </div>
+
+                            <!-- Visual Timeline -->
+                            <div class="relative pt-4 pl-4 ml-4 border-l-2 border-gray-700 space-y-8 mb-10">
+                                
+                                <!-- Step 1: Order Placed -->
+                                <div class="relative">
+                                    <span class="absolute -left-11 w-6 h-6 rounded-full flex items-center justify-center text-xs" :class="true ? 'bg-gold text-black' : 'bg-gray-700 text-gray-400'"><i class="fas fa-check"></i></span>
+                                    <h3 class="text-white font-bold">Order Placed</h3>
+                                    <p class="text-gray-400 text-sm">We have received your order details.</p>
+                                </div>
+
+                                <!-- Step 2: Processing & Packing -->
+                                <div class="relative">
+                                    <span class="absolute -left-11 w-6 h-6 rounded-full flex items-center justify-center text-xs" :class="['processing', 'packing', 'dispatched', 'delivered'].includes(trackedOrder.status) ? 'bg-gold text-black' : 'bg-gray-700 text-gray-400'"><i class="fas fa-box"></i></span>
+                                    <h3 class="text-white font-bold" :class="['processing', 'packing', 'dispatched', 'delivered'].includes(trackedOrder.status) ? '' : 'opacity-50'">Processing & Packing</h3>
+                                    <p class="text-gray-400 text-sm">Your items are being quality-checked and packed securely.</p>
+                                </div>
+
+                                <!-- Step 3: Dispatched -->
+                                <div class="relative">
+                                    <span class="absolute -left-11 w-6 h-6 rounded-full flex items-center justify-center text-xs" :class="['dispatched', 'delivered'].includes(trackedOrder.status) ? 'bg-gold text-black' : 'bg-gray-700 text-gray-400'"><i class="fas fa-truck"></i></span>
+                                    <h3 class="text-white font-bold" :class="['dispatched', 'delivered'].includes(trackedOrder.status) ? '' : 'opacity-50'">Dispatched</h3>
+                                    <p class="text-gray-400 text-sm">Handed over to the courier partner.</p>
+                                </div>
+                            </div>
+
+                            <!-- Courier Live Tracking Button (Only visible if dispatched) -->
+                            <div x-show="trackedOrder.status === 'dispatched' && trackedOrder.courierTrackingId" class="p-6 rounded-lg text-center" style="background: rgba(198,255,52,0.1); border: 1px dashed rgba(198,255,52,0.5);">
+                                <p class="text-white mb-2 font-bold">Your order is on the way via <span x-text="trackedOrder.courierName"></span>!</p>
+                                <p class="text-gray-400 text-sm mb-4">Tracking Number: <strong class="text-gold" x-text="trackedOrder.courierTrackingId"></strong></p>
+                                <button @click="openCourierTracking(trackedOrder)" class="btn-premium px-6 py-2 rounded-md font-bold text-black w-full sm:w-auto" style="background:#c6ff34;">
+                                    <i class="fas fa-external-link-alt mr-2"></i> Track Live on Courier Website
+                                </button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -4266,6 +4386,47 @@
             </form>
         </div>
     </div>
+
+    <!-- Update Order Status Modal (Admin Only) -->
+    <div class="modal-overlay" :class="{'active': updateOrderModalOpen}">
+        <div class="modal-content max-w-lg">
+            <button class="close-modal" @click="updateOrderModalOpen = false">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-6 text-center">Update Order Status</h2>
+            
+            <form @submit.prevent="saveOrderStatus()">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2 font-bold">Internal Status</label>
+                    <select x-model="editingOrder.status" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold" required>
+                        <option value="processing">Processing</option>
+                        <option value="packing">Packing</option>
+                        <option value="dispatched">Dispatched (Given to Courier)</option>
+                        <option value="delivered">Delivered</option>
+                    </select>
+                </div>
+
+                <div class="mb-4" x-show="editingOrder.status === 'dispatched' || editingOrder.status === 'delivered'">
+                    <label class="block text-gray-700 mb-2 font-bold">Select Courier Partner</label>
+                    <select x-model="editingOrder.courierName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold">
+                        <option value="">Select Courier</option>
+                        <option value="TCS">TCS</option>
+                        <option value="Leopards">Leopards Courier</option>
+                        <option value="Trax">Trax</option>
+                        <option value="CallCourier">CallCourier</option>
+                    </select>
+                </div>
+
+                <div class="mb-6" x-show="editingOrder.status === 'dispatched' || editingOrder.status === 'delivered'">
+                    <label class="block text-gray-700 mb-2 font-bold">Courier Tracking ID</label>
+                    <input type="text" x-model="editingOrder.courierTrackingId" placeholder="e.g. 1234567890" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold">
+                    <p class="text-xs text-gray-500 mt-1">Customers will use this to track directly on the courier website.</p>
+                </div>
+
+                <button type="submit" class="w-full btn-premium py-3 rounded-md font-medium shadow-md hover-lift">Save Update & Send Link</button>
+            </form>
+        </div>
+    </div>
     
     <!-- Change Credentials Modal (Admin Only) -->
     <div class="modal-overlay" :class="{'active': changeCredentialsModalOpen}">
@@ -4577,6 +4738,15 @@
                 bulkPriceModalOpen: false,
                 bulkPriceForm: { target: 'all', categoryId: '', amount: 0 },
                 isAdmin: false,
+                
+                // Order Tracking Variables
+                adminOrders: [],
+                updateOrderModalOpen: false,
+                editingOrder: { id: '', status: '', courierName: '', courierTrackingId: '' },
+                trackOrderIdInput: '',
+                trackedOrder: null,
+                isTrackingLoading: false,
+                trackingError: '',
                 isLoggedIn: false,
                 showCartNotification: false,
                 cartOpen: false,
@@ -5117,14 +5287,21 @@
                         const prodSnapshot = await window.fs.getDocs(window.fs.collection(window.db, "products"));
                         this.products = prodSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                         
-                        // Check for Review Link AFTER products are successfully loaded
+                        // Check for Review Link OR Tracking Link AFTER products are successfully loaded
                         const urlParams = new URLSearchParams(window.location.search);
                         const reviewProductId = urlParams.get('review');
+                        const trackingId = urlParams.get('track');
+
                         if (reviewProductId) {
                             const productToReview = this.products.find(p => p.id === reviewProductId);
                             if (productToReview) {
                                 this.showReviewOnlyPage(productToReview);
                             }
+                        } else if (trackingId) {
+                            this.trackOrderIdInput = trackingId;
+                            this.previousPage = 'home';
+                            this.startPageTransition('track-order');
+                            setTimeout(() => { this.fetchTrackingData() }, 1000);
                         }
                     } catch (e) { console.error("Error fetching products:", e); }
                 
@@ -6352,6 +6529,111 @@
                         }
                     }
                 },
+
+                // --- ORDER TRACKING SYSTEM METHODS ---
+                async loadAdminOrders() {
+                    try {
+                        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, "orders"));
+                        // Sort by date descending (newest first)
+                        this.adminOrders = querySnapshot.docs
+                            .map(doc => ({ id: doc.id, ...doc.data() }))
+                            .sort((a, b) => new Date(b.date) - new Date(a.date));
+                    } catch (e) { 
+                        console.error("Error loading admin orders", e); 
+                        this.showToast('Failed to load orders', 'error');
+                    }
+                },
+
+                showAdminDashboard() {
+                    this.startPageTransition('admin-dashboard');
+                    setTimeout(() => { this.loadAdminOrders() }, 500); // Automatically load orders when entering admin dashboard
+                },
+
+                openUpdateOrderModal(order) {
+                    this.editingOrder = { 
+                        id: order.id, 
+                        status: order.status, 
+                        courierName: order.courierName || '', 
+                        courierTrackingId: order.courierTrackingId || '',
+                        email: order.shipping.email,
+                        trackingCode: order.orderId
+                    };
+                    this.updateOrderModalOpen = true;
+                },
+
+                async saveOrderStatus() {
+                    try {
+                        const orderRef = window.fs.doc(window.db, "orders", this.editingOrder.id);
+                        
+                        const updateData = { status: this.editingOrder.status };
+                        if (['dispatched', 'delivered'].includes(this.editingOrder.status)) {
+                            updateData.courierName = this.editingOrder.courierName;
+                            updateData.courierTrackingId = this.editingOrder.courierTrackingId;
+                        }
+
+                        await window.fs.updateDoc(orderRef, updateData);
+
+                        // Update local array immediately
+                        const idx = this.adminOrders.findIndex(o => o.id === this.editingOrder.id);
+                        if (idx !== -1) {
+                            this.adminOrders[idx] = { ...this.adminOrders[idx], ...updateData };
+                        }
+
+                        this.updateOrderModalOpen = false;
+                        this.showToast('Order Status Updated Successfully!', 'success');
+
+                        // Generate Tracking Link to copy/send
+                        const baseUrl = window.location.origin + window.location.pathname;
+                        const trackLink = `${baseUrl}?track=${this.editingOrder.trackingCode}`;
+                        
+                        navigator.clipboard.writeText(trackLink);
+                        setTimeout(() => {
+                            alert(`Tracking Link Copied to Clipboard!\n\nYou can send this link to the customer:\n${trackLink}`);
+                        }, 500);
+
+                    } catch (error) {
+                        this.showToast('Error updating order: ' + error.message, 'error');
+                    }
+                },
+
+                async fetchTrackingData() {
+                    if (!this.trackOrderIdInput.trim()) return;
+                    
+                    this.isTrackingLoading = true;
+                    this.trackingError = '';
+                    this.trackedOrder = null;
+
+                    try {
+                        const q = window.fs.query(
+                            window.fs.collection(window.db, "orders"), 
+                            window.fs.where("orderId", "==", this.trackOrderIdInput.trim())
+                        );
+                        const querySnapshot = await window.fs.getDocs(q);
+
+                        if (querySnapshot.empty) {
+                            this.trackingError = "Order not found. Please verify your Tracking ID.";
+                        } else {
+                            this.trackedOrder = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+                        }
+                    } catch (error) {
+                        this.trackingError = "Error fetching tracking info. Please try again.";
+                    } finally {
+                        this.isTrackingLoading = false;
+                    }
+                },
+
+                openCourierTracking(order) {
+                    const courierUrls = {
+                        'TCS': `https://www.tcsexpress.com/Tracking?TrackBy=ReferenceNumber&ReferenceNumber=${order.courierTrackingId}`,
+                        'Leopards': `https://www.leopardscourier.com/leopards-tracking?track_numbers=${order.courierTrackingId}`,
+                        'Trax': `https://trax.pk/tracking/?tracking_number=${order.courierTrackingId}`,
+                        'CallCourier': `https://callcourier.com.pk/tracking/?trackingid=${order.courierTrackingId}`
+                    };
+                    
+                    const url = courierUrls[order.courierName] || 'https://www.tcsexpress.com';
+                    window.open(url, '_blank');
+                },
+                // ---------------------------------------------
 
                 async applyBulkPriceChange() {
                     const amount = parseFloat(this.bulkPriceForm.amount);
