@@ -4572,7 +4572,7 @@
             </div>
         </div> 
 
-        <section class="py-8 bg-white border-t border-gray-100">
+        <section class="py-8 bg-white border-t border-gray-100" x-show="currentPage === 'home'">
                         <div class="container mx-auto px-6 text-center">
                             <h2 class="text-2xl font-bold mb-4">Shop the Best Hoodies & Track Suits in Pakistan</h2>
                             <p class="text-gray-500 text-sm max-w-4xl mx-auto">
@@ -5349,10 +5349,10 @@
                     }
                     this.$watch('selectedColor', () => { this.applyShirtColor(); });
                     this.$watch('mockupView', () => { this.applyShirtColor(); });
-                    // Determine active page
+                    // Determine active page dynamically based on URL routing
                     setTimeout(() => {
                         document.querySelectorAll('.page-container').forEach(page => {
-                            if (page.getAttribute('x-show') === 'currentPage === \'home\'') {
+                            if (page.getAttribute('x-show') === `currentPage === '${this.currentPage}'`) {
                                 page.classList.add('active');
                             }
                         });
