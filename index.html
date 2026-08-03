@@ -6173,8 +6173,7 @@
                         `;
                     }).join('');
                 
-                    const baseUrl = window.location.origin + window.location.pathname;
-                    const trackingLink = `${baseUrl}?track=${trackingCode}`;
+                    
                     
                     const finalCustomerHtml = generatedOrderHtml + `
                     <div style="text-align: center; margin-top: 30px; margin-bottom: 20px; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
@@ -6184,6 +6183,9 @@
                         <p style="color: #888; font-size: 12px; margin-top: 15px; font-family: sans-serif;">Tracking ID: <strong>${trackingCode}</strong></p>
                     </div>
                     `;
+
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const trackingLink = `${baseUrl}?track=${trackingCode}`;
 
                     const customerEmailParams = {
                         order_id: trackingCode,
@@ -6202,8 +6204,7 @@
                         product_qty: itemQty,
                         product_price: firstItem.salePrice || firstItem.price,
                         product_image: displayImage,
-                        tracking_link: trackingLink,
-                        order_html: finalCustomerHtml  
+                        tracking_link: trackingLink
                     };
                 
                     // 7. PARAMS FOR ADMIN EMAIL
