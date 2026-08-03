@@ -5017,18 +5017,7 @@
 
                     // Setup Initial History State
                     window.history.replaceState({ page: 'home' }, '', '#home');
-                    // Check if user came from an email review link
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const reviewProductId = urlParams.get('review');
-                    if (reviewProductId) {
-                        setTimeout(() => {
-                            const productToReview = this.products.find(p => p.id === reviewProductId);
-                            if (productToReview) {
-                                this.showProductDetail(productToReview);
-                                setTimeout(() => document.getElementById('review-section').scrollIntoView({behavior: 'smooth'}), 1000);
-                            }
-                        }, 1500); // Wait for products to load from Firebase
-                    }
+                    
                     // Listen for Browser/Mobile Back Button
                     window.addEventListener('popstate', (event) => {
                         if (event.state && event.state.page) {
@@ -5061,6 +5050,21 @@
                     try {
                         const prodSnapshot = await window.fs.getDocs(window.fs.collection(window.db, "products"));
                         this.products = prodSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        
+                        // Check for Review Link AFTER products are successfully loaded
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const reviewProductId = urlParams.get('review');
+                        if (reviewProductId) {
+                            const productToReview = this.products.find(p => p.id === reviewProductId);
+                            if (productToReview) {
+                                this.showProductDetail(productToReview);
+                                // Wait for the page transition animation (800ms) to finish before scrolling
+                                setTimeout(() => {
+                                    const reviewSec = document.getElementById('review-section');
+                                    if(reviewSec) reviewSec.scrollIntoView({behavior: 'smooth', block: 'start'});
+                                }, 1200);
+                            }
+                        }
                     } catch (e) { console.error("Error fetching products:", e); }
                 
                     // 5. Listen for User Auth State Changes (UPDATED TO FETCH NAME)
