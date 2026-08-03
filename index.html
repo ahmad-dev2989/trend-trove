@@ -6140,9 +6140,8 @@
                     const adminColor = isCustom ? 'N/A' : itemColor;
                     const printingSize = (isCustom && firstItem.customDetails && firstItem.customDetails.printSize) ? firstItem.customDetails.printSize : 'N/A';
 
-                    // Generate Tracking Link
-                    const baseUrl = window.location.origin + window.location.pathname;
-                    const trackingLink = `${baseUrl}?track=${trackingCode}`;
+                    // Generate Tracking Link (Hardcoded to live site to prevent Gmail blocking localhost)
+                    const trackingLink = `https://trend-trove.pages.dev/?track=${trackingCode}`;
 
                     // 6. PARAMS FOR BUYER EMAIL
                     const customerEmailParams = {
