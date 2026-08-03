@@ -6603,14 +6603,17 @@
                 },
 
                 openCourierTracking(order) {
+                    // Remove any accidental spaces from the tracking ID
+                    const trackId = order.courierTrackingId.trim();
+
                     const courierUrls = {
-                        'TCS': `https://www.tcsexpress.com/Tracking?TrackBy=ReferenceNumber&ReferenceNumber=${order.courierTrackingId}`,
-                        'Leopards': `https://www.leopardscourier.com/leopards-tracking?track_numbers=${order.courierTrackingId}`,
-                        'Trax': `https://trax.pk/tracking/?tracking_number=${order.courierTrackingId}`,
-                        'CallCourier': `https://callcourier.com.pk/tracking/?trackingid=${order.courierTrackingId}`
+                        'TCS': `https://tcsexpress.com/tracking?tracknos=${trackId}`,
+                        'Leopards': `https://www.leopardscourier.com/tracking-result/?track_numbers=${trackId}`,
+                        'Trax': `https://sonic.pk/tracking?tracking_number=${trackId}`,
+                        'CallCourier': `https://callcourier.com.pk/tracking/?trackingid=${trackId}`
                     };
                     
-                    const url = courierUrls[order.courierName] || 'https://www.tcsexpress.com';
+                    const url = courierUrls[order.courierName] || `https://www.google.com/search?q=${order.courierName}+tracking+${trackId}`;
                     window.open(url, '_blank');
                 },
                 // ---------------------------------------------
