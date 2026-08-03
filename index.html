@@ -2608,6 +2608,72 @@
             </div>
         </div>
     </div>
+
+    <!-- Dedicated Review Page -->
+    <div x-show="currentPage === 'review-only'" class="page-container">
+        <div class="min-h-screen bg-cream py-12">
+            <div class="container mx-auto px-4 max-w-2xl">
+                <button @click="showHomePage()" class="mb-6 flex items-center text-primary hover:text-gold transition-colors hover-lift">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Home
+                </button>
+                
+                <div class="p-6 md:p-10 rounded-xl shadow-2xl mb-8" style="background:#111111; border: 1px solid rgba(198,255,52,0.2);">
+                    <h2 class="text-3xl font-bold mb-6 text-center" style="color:#ffffff;">Leave a Review</h2>
+                    
+                    <!-- Small Product Info -->
+                    <div class="flex items-center gap-4 p-4 rounded-lg mb-8" style="background: rgba(255,255,255,0.05);">
+                        <img :src="selectedProduct.frontImages && selectedProduct.frontImages[0]" alt="Product" class="w-20 h-20 object-cover rounded-md border border-gray-600">
+                        <div>
+                            <h3 class="font-bold text-lg" style="color:#ffffff;" x-text="selectedProduct.name"></h3>
+                            <p class="text-sm" style="color:#c6ff34;" x-text="'PKR ' + (selectedProduct.salePrice || selectedProduct.price)"></p>
+                        </div>
+                    </div>
+
+                    <!-- Review Form -->
+                    <form @submit.prevent="submitReview(); setTimeout(() => showHomePage(), 1000);">
+                        <div class="mb-4" x-show="!isLoggedIn">
+                            <label class="block text-gray-400 mb-2 text-sm font-medium">Your Name</label>
+                            <input type="text" x-model="newReview.name" class="w-full p-3 rounded focus:outline-none" style="background:#1a1a1a; border:1px solid #333333; color:#ffffff;" placeholder="Enter your name" required>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-400 mb-2 text-sm font-medium">Rating</label>
+                            <div class="flex space-x-2 cursor-pointer">
+                                <template x-for="i in 5">
+                                    <i class="fas fa-star text-3xl transition-colors hover:scale-110" 
+                                       :class="i <= newReview.rating ? 'text-yellow-400' : 'text-gray-600'"
+                                       @click="newReview.rating = i"></i>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-400 mb-2 text-sm font-medium">Your Review</label>
+                            <textarea x-model="newReview.comment" class="w-full p-3 rounded focus:outline-none" style="background:#1a1a1a; border:1px solid #333333; color:#ffffff;" rows="4" placeholder="Share your experience with this product..." required></textarea>
+                        </div>
+
+                        <div class="mb-8">
+                            <label class="block text-gray-400 mb-2 text-sm font-medium">Upload Photos (Optional)</label>
+                            <input type="file" multiple accept="image/*" @change="handleReviewImageUpload" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-800 file:text-gold hover:file:bg-gray-700">
+                            <div class="flex flex-wrap gap-3 mt-3">
+                                <template x-for="(img, index) in newReview.images" :key="index">
+                                    <div class="relative">
+                                        <img :src="img" class="w-20 h-20 object-cover rounded-md border border-gray-600">
+                                        <button type="button" @click="removeReviewImage(index)" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-lg hover:bg-red-600 transition"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-premium w-full py-4 text-lg rounded-md font-bold tracking-wide transition-all shadow-lg">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Product Detail Page -->
     <div x-show="currentPage === 'product-detail'" class="page-container">
@@ -5057,12 +5123,7 @@
                         if (reviewProductId) {
                             const productToReview = this.products.find(p => p.id === reviewProductId);
                             if (productToReview) {
-                                this.showProductDetail(productToReview);
-                                // Wait for the page transition animation (800ms) to finish before scrolling
-                                setTimeout(() => {
-                                    const reviewSec = document.getElementById('review-section');
-                                    if(reviewSec) reviewSec.scrollIntoView({behavior: 'smooth', block: 'start'});
-                                }, 1200);
+                                this.showReviewOnlyPage(productToReview);
                             }
                         }
                     } catch (e) { console.error("Error fetching products:", e); }
@@ -5556,6 +5617,13 @@
                     this.categoryProducts = this.products.filter(product => product.category === categoryId);
                     this.previousPage = this.currentPage;
                     this.startPageTransition('category-products');
+                },
+
+                showReviewOnlyPage(product) {
+                    this.selectedProduct = product;
+                    this.newReview = { rating: 0, comment: '', name: '', images: [] };
+                    this.previousPage = 'home';
+                    this.startPageTransition('review-only');
                 },
                 
                 showProductDetail(product) {
